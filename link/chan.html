@@ -1,0 +1,219 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="google-site-verification" content="ture"><meta name="author" content="文弱书生阿坤"><link rel="alternative" href="/atom.xml" title="如是曰尘" type="application/atom+xml"><link rel="icon" href="/favicon.png"><title> - 如是曰尘</title><link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/js/fancybox/jquery.fancybox.min.css"><!--[if lt IE 9]><script>(function(a,b){a="abbr article aside audio bdi canvas data datalist details dialog figcaption figure footer header hgroup main mark meter nav output progress section summary template time video".split(" ");for(b=a.length-1;b>=0;b--)document.createElement(a[b])})()</script><![endif]--><script src="/js/jquery-3.1.1.min.js"></script><script src="/js/fancybox/jquery.fancybox.min.js"></script></head><body style="opacity:0;"><header class="head"><h1 class="head-title u-fl"><a href="/">如是曰尘</a></h1><nav class="head-nav u-fr"><ul class="head-nav__list"><li class="head-nav__item"><a class="head-nav__link" href="/archives">Catalog/（目录）</a></li></ul></nav></header><main class="main"><article class="post"><header class="post__head"> <time class="post__time" datetime="2018-03-12T14:26:28.420Z">三月 12, 2018</time><h1 class="post__title"><a href="/link/chan.html"></a></h1><div class="post__main echo"><!doctype html><!-- 声明文档类型 html5 每个浏览器对HTML、CSS、JS的代码都有自己的编辑模式  符合W3C统一的标准规范-->
+<html><!-- 超文本标记语言 根目录 -->
+	
+	<head><!--头部-->
+		<meta charset="utf-8"><!-- 字符编码 万国码 -->
+		<!-- 网页的三要素 -->
+		<title> Chan</title><!--标题-->
+		<meta name="keywords" content="关键词1、关键词2."><!--元标签-->
+		<meta name="description" content="">
+		<style>
+			html, body {
+				height: 100%;
+			}
+			body {
+				background: #000;
+			}
+			canvas {
+				width: auto;
+				height: auto;
+				max-width: 90%;
+				max-height: 90%;
+				position: absolute;
+				display: block;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+			}
+		</style>
+	</head>
+	<body>
+		
+		<canvas height="1600" width="1600"></canvas>
+		<canvas height="1600" width="1600"></canvas>
+		
+	<script>
+		console.clear();
+
+const PI = Math.PI,
+  PI2 = PI * 2,
+  RATE = 30,
+  CVS1 = document.querySelector('canvas:nth-child(1)'),
+  CVS2 = document.querySelector('canvas:nth-child(2)'),
+  CTX1 = CVS1.getContext('2d'),
+  CTX2 = CVS2.getContext('2d'),
+  CVS_DI = CVS1.width,
+  // How many cols/rows
+  COUNT = 8,
+  // Padding
+  PEN_PAD = CVS_DI * 0.025,
+  // Radius
+  PEN_RAD = CVS_DI / ((COUNT + 1) * 2),
+  // Stroke line width
+  STROKE = 2,
+  // Indicator radius
+  TIP_RAD = 6,
+  // Coloring
+  COLOR = '#FFF',
+  COLOR_OFF = '#333';
+
+// An input "Pen", influences the x or y of a Group's output
+class Pen {
+  constructor({ rate, x, y }) {
+    this.di = PEN_RAD * 2;
+    this.rad = PEN_RAD * 0.7;
+    this.x = x * this.di;
+    this.y = y * this.di;
+    this.cx = this.x + this.di * 0.5;
+    this.cy = this.y + this.di * 0.5;
+    this.rateName = rate;
+    this.rate = RATE * rate;
+    this.position = 0;
+  }
+
+  tick() {
+    this.progress = this.position / this.rate;
+    this._calc();
+    this.position++;
+  }
+
+  // Setting the coordinates for the tip of the pen
+  _calc() {
+    let deg = 360 * this.progress;
+    this.tipX = this.cx + this.rad * Math.cos(deg * PI / 180);
+    this.tipY = this.cy + this.rad * Math.sin(deg * PI / 180);
+  }
+}
+
+// Takes an x pen and y pen and produces an output
+class Group {
+  constructor(penX, penY) {
+    this.penX = penX;
+    this.penY = penY;
+    this.tracker = {};
+    this.progress = 0;
+  }
+
+  tick() {
+    // setting the last coordinates for the output line
+    this.lastX = this.x;
+    this.lastY = this.y;
+    // Setting the current coordinates
+    this.x = this.penX.tipX + this.penY.x;
+    this.y = this.penY.tipY + this.penX.y;
+    // Storing the combination so we never redraw
+    let key = `${this.lastX}-${this.lastY}-${this.x}-${this.y}`;
+    // Setting draw to false if this has already been drawn
+    if (this.tracker[key]) this.draw = false;
+    // Setting draw to true then storing that this has been drawn
+    else { this.tracker[key] = true; this.draw = true };
+    // Draw the output and the Pens
+    this._draw();
+    this.progress++;
+  }
+
+  _draw() {
+    this._drawPen(this.penX);
+    this._drawPen(this.penY);
+    this._drawOutput();
+  }
+
+  // Take a pen and draw it, its rate, and an indicator of current position
+  _drawPen({ rad, di, x, y, cx, cy, tipX, tipY, rateName }) {
+    // the circle
+    CTX1.lineWidth = STROKE;
+    CTX1.strokeStyle = COLOR_OFF;
+    CTX1.beginPath();
+    CTX1.arc(cx, cy, rad, 0, PI2, false);
+    CTX1.stroke();
+    
+    // The current position
+    CTX1.fillStyle = COLOR;
+    CTX1.strokeStyle = COLOR;
+    CTX1.beginPath();
+    CTX1.arc(tipX, tipY, TIP_RAD, 0, PI2, false);
+    CTX1.fill();
+    
+    // the rate number
+    CTX1.fillStyle = COLOR_OFF;
+    CTX1.font = `lighter ${rad * 0.5}px Helvetica`;
+    CTX1.textAlign = 'center';
+    CTX1.textBaseline = 'middle';
+    CTX1.fillText(rateName, cx, cy);
+  }
+
+  // Draw the output of the two pens
+  _drawOutput() {
+    // If it hasnt already been drawn yet,
+    //  draw the path on the canvas that isnt erased each frame
+    if (this.draw) {
+      CTX2.lineWidth = STROKE;
+      CTX2.strokeStyle = COLOR;
+      CTX2.beginPath();
+      CTX2.moveTo(this.lastX, this.lastY);
+      CTX2.lineTo(this.x, this.y);
+      CTX2.stroke();
+    }
+
+    // Draw the indicator on the refreshing canvas
+    CTX1.fillStyle = COLOR;
+    CTX1.beginPath();
+    CTX1.arc(this.x, this.y, TIP_RAD, 0, PI2, false);
+    CTX1.fill();
+  }
+}
+
+let pensX = [],
+    pensY = [],
+    groups = [];
+
+// Generating the pens
+for (let x = 0; x < COUNT; x++) {
+  let penX = new Pen({ rate: x + 1, x: x + 1, y: 0 }),
+    penY = new Pen({ rate: x + 1, x: 0, y: x + 1 });
+  pensX.push(penX);
+  pensY.push(penY);
+}
+
+// Generating the groups
+for (let x = 0; x < pensY.length; x++)
+  for (let y = 0; y < pensX.length; y++)
+    groups.push(new Group(pensX[x], pensY[y]));
+
+// Start running
+run();
+
+function run() {
+  // Clear the refreshing canvas
+  CTX1.clearRect(0, 0, CVS_DI, CVS_DI);
+
+  // For each pen
+  for (let i = 0; i < pensX.length; i++) {
+    // Tick them forward to get new coords
+    pensX[i].tick();
+    pensY[i].tick();
+
+    // Draw the axis
+    CTX1.lineWidth = STROKE;
+    CTX1.strokeStyle = COLOR_OFF;
+    CTX1.beginPath();
+    CTX1.moveTo(pensX[i].tipX, 0);
+    CTX1.lineTo(pensX[i].tipX, CVS_DI);
+    CTX1.stroke();
+    CTX1.beginPath();
+    CTX1.moveTo(0, pensY[i].tipY);
+    CTX1.lineTo(CVS_DI, pensY[i].tipY);
+    CTX1.stroke();
+  }
+
+  // Tick each group (draws them as well)
+  groups.forEach(group => group.tick());
+
+  // Run it again
+  requestAnimationFrame(run);
+}
+	</script>
+	</body>
+</html></div></header></article><section class="reward"> <a class="btn-reward" href="#">打赏</a><div class="reward-wrapper clearfix"><img src="/img/alipay1.png" title="红包码"><img src="/img/alipay.png" title="支付宝"></div></section><div class="comments" id="lv-container" data-id="city" data-uid="your uid"><script>(function(d, s) {var j, e = d.getElementsByTagName(s)[0];if (typeof LivereTower === 'function') { return; } j = d.createElement(s);j.src = 'https://cdn-city.livere.com/js/embed.dist.js';j.async = true;e.parentNode.insertBefore(j, e);})(document, 'script');</script></div></main><footer class="foot"><div class="foot-copy">&copy; 2017-2018 文弱书生阿坤</div></footer><script>(function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;e=o.createElement(i);r=o.getElementsByTagName(i)[0];e.src='//www.google-analytics.com/analytics.js';r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+ga('create','true');
+ga('send','pageview');</script><script src="/js/scroller.js"></script><script src="/js/main.js"></script></body></html>
